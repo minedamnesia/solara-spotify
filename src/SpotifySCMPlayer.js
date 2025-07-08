@@ -1,6 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 
 export default function SpotifySCMPlayer({ accessToken }) {
   const [playlists, setPlaylists] = useState([]);
@@ -74,24 +72,22 @@ export default function SpotifySCMPlayer({ accessToken }) {
       <h2 className="text-2xl font-bold mb-4">SCM Spotify Player</h2>
 
       {/* Playlist Options */}
-      <Card>
-        <CardContent className="p-4">
+      <div className="bg-white shadow rounded-xl p-4">
           <h3 className="text-xl font-semibold mb-2">Available SCM Playlists</h3>
           <ul className="space-y-2">
             {playlists.map((playlist) => (
               <li key={playlist.id}>
-                <Button onClick={() => handlePlaylistSelect(playlist)} variant={currentPlaylist?.id === playlist.id ? "default" : "outline"}>
+                <button onClick={() => handlePlaylistSelect(playlist)} variant={currentPlaylist?.id === playlist.id ? "default" : "outline"}>
                   {playlist.name}
-                </Button>
+                </button>
               </li>
             ))}
           </ul>
-        </CardContent>
-      </Card>
+      </div>
 
       {/* Random Selector */}
       <div className="text-center">
-        <Button onClick={selectRandomPlaylist} className="mb-4">Play a Random Playlist</Button>
+        <button onClick={selectRandomPlaylist} className="mb-4">Play a Random Playlist</button>
       </div>
 
       {/* Now Playing and Controls */}
@@ -101,9 +97,9 @@ export default function SpotifySCMPlayer({ accessToken }) {
           <p className="mb-4">{currentPlaylist.name}</p>
 
           <div className="space-x-4">
-            <Button onClick={skipPrevious}>⏮️ Previous</Button>
-            <Button onClick={togglePlay}>{isPlaying ? '⏸️ Pause' : '▶️ Play'}</Button>
-            <Button onClick={skipNext}>⏭️ Next</Button>
+            <button onClick={skipPrevious}>⏮️ Previous<bButton>
+            <button onClick={togglePlay}>{isPlaying ? '⏸️ Pause' : '▶️ Play'}b/Button>
+            <button onClick={skipNext}>⏭️ Next<bButton>
           </div>
 
           <div className="mt-4">
