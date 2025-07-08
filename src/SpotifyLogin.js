@@ -2,7 +2,7 @@ import React from 'react';
 
 // Spotify app settings
 const clientId = process.env.REACT_APP_SPOTIFY_CLIENT_ID;
-const redirectUri = 'http://127.0.0.1:3000/callback';
+const redirectUri = 'https://solara-spotify.vercel.app/callback';
 const scopes = [
   'playlist-read-private',
   'playlist-read-collaborative',
