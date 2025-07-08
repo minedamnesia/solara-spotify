@@ -97,9 +97,9 @@ export default function SpotifySCMPlayer({ accessToken }) {
           <p className="mb-4">{currentPlaylist.name}</p>
 
           <div className="space-x-4">
-            <button onClick={skipPrevious}>⏮️ Previous<bButton>
-            <button onClick={togglePlay}>{isPlaying ? '⏸️ Pause' : '▶️ Play<}b/Button>
-            <button onClick={skipNext}>⏭️ Next<bButton>
+            <button onClick={skipPrevious}>⏮️ Previous<Button>
+            <button onClick={togglePlay}>{isPlaying ? '⏸️ Pause' : '▶️ Pl'y<}b/Button>
+            <button onClick={skipNext}>⏭️ Next<Button>
           </div>
 
           <div className="mt-4">
