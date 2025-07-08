@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 
 const clientId = process.env.REACT_APP_SPOTIFY_CLIENT_ID;
-const redirectUri = 'http://127.0.0.1:3000/callback';
+const redirectUri = 'https://solara-spotify.vercel.app/callback';
 
 export default function SpotifyCallback() {
   useEffect(() => {
