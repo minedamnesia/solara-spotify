@@ -9,15 +9,23 @@ export default function SpotifySCMPlayer({ accessToken }) {
   const [volume, setVolume] = useState(0.8);
   const [loading, setLoading] = useState(true);
 
+
+
   function loadSpotifySDK() {
     return new Promise((resolve) => {
-      const existingScript = document.getElementById('spotify-player');
-      if (existingScript) return resolve(); // Already loaded
+      if (window.Spotify) {
+        resolve(); // Already loaded
+        return;
+      }
+
+      window.onSpotifyWebPlaybackSDKReady = () => {
+        resolve();
+      };
+
       const script = document.createElement('script');
-      script.id = 'spotify-player';
       script.src = 'https://sdk.scdn.co/spotify-player.js';
       script.async = true;
-      script.onload = () => resolve();
+      script.id = 'spotify-player';
       document.body.appendChild(script);
     });
   }
