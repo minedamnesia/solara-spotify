@@ -11,26 +11,38 @@ export default function SpotifySCMPlayer({ accessToken }) {
   const [volume, setVolume] = useState(0.8);
   const [loading, setLoading] = useState(true);
 
+ function loadSpotifySDK() {
+    return new Promise((resolve) => {
+      const script = document.createElement('script');
+      script.src = 'https://sdk.scdn.co/spotify-player.js';
+      script.async = true;
+      script.onload = () => resolve();
+      document.body.appendChild(script);
+    });
+  }
+
   useEffect(() => {
-    window.onSpotifyWebPlaybackSDKReady = () => {
-      const player = new window.Spotify.Player({
-        name: 'SCM Web Player',
-        getOAuthToken: cb => { cb(accessToken); },
-        volume: 0.8
-      });
+    loadSpotifySDK().then(() => {
+      window.onSpotifyWebPlaybackSDKReady = () => {
+        const player = new window.Spotify.Player({
+          name: 'Solara Spotify Player',
+          getOAuthToken: cb => cb(accessToken),
+          volume: 0.8
+        });
 
-      player.addListener('ready', ({ device_id }) => {
-        console.log('Ready with Device ID', device_id);
-        setDeviceId(device_id);
-      });
+        player.addListener('ready', ({ device_id }) => {
+          console.log('Ready with Device ID', device_id);
+          setDeviceId(device_id);
+        });
 
-      player.addListener('player_state_changed', (state) => {
-        setIsPlaying(!state.paused);
-      });
+        player.addListener('player_state_changed', state => {
+          setIsPlaying(!state.paused);
+        });
 
-      player.connect();
-      setPlayer(player);
-    };
+        player.connect();
+        setPlayer(player);
+      };
+    });
   }, [accessToken]);
 
   // The rest of your fetchPlaylists, selectRandomPlaylist, handlePlaylistSelect, and playPlaylist functions stay the same

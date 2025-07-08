@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 
-const clientId = 'YOUR_SPOTIFY_CLIENT_ID'; // Replace with your actual Spotify app client ID
-const redirectUri = 'http://localhost:3000/callback'; // Make sure this matches your Spotify app settings
+const clientId = process.env.REACT_APP_SPOTIFY_CLIENT_ID;
+const redirectUri = 'http://127.0.0.1:3000/callback';
 
 export default function SpotifyCallback() {
   useEffect(() => {
