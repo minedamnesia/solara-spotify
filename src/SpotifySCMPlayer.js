@@ -9,9 +9,12 @@ export default function SpotifySCMPlayer({ accessToken }) {
   const [volume, setVolume] = useState(0.8);
   const [loading, setLoading] = useState(true);
 
- function loadSpotifySDK() {
+  function loadSpotifySDK() {
     return new Promise((resolve) => {
+      const existingScript = document.getElementById('spotify-player');
+      if (existingScript) return resolve(); // Already loaded
       const script = document.createElement('script');
+      script.id = 'spotify-player';
       script.src = 'https://sdk.scdn.co/spotify-player.js';
       script.async = true;
       script.onload = () => resolve();
@@ -22,30 +25,85 @@ export default function SpotifySCMPlayer({ accessToken }) {
   useEffect(() => {
     loadSpotifySDK().then(() => {
       window.onSpotifyWebPlaybackSDKReady = () => {
-        const player = new window.Spotify.Player({
+        const spotifyPlayer = new window.Spotify.Player({
           name: 'Solara Spotify Player',
           getOAuthToken: cb => cb(accessToken),
           volume: 0.8
         });
 
-        player.addListener('ready', ({ device_id }) => {
+        spotifyPlayer.addListener('ready', ({ device_id }) => {
           console.log('Ready with Device ID', device_id);
           setDeviceId(device_id);
         });
 
-        player.addListener('player_state_changed', state => {
-          setIsPlaying(!state.paused);
+        spotifyPlayer.addListener('player_state_changed', (state) => {
+          setIsPlaying(state && !state.paused);
         });
 
-        player.connect();
-        setPlayer(player);
+        spotifyPlayer.connect();
+        setPlayer(spotifyPlayer);
       };
     });
   }, [accessToken]);
 
-  // The rest of your fetchPlaylists, selectRandomPlaylist, handlePlaylistSelect, and playPlaylist functions stay the same
+  const fetchPlaylists = async () => {
+    try {
+      let results = [];
+      let url = 'https://api.spotify.com/v1/me/playlists?limit=50';
 
-  // New Playback Controls
+      while (url) {
+        const res = await fetch(url, {
+          headers: { Authorization: `Bearer ${accessToken}` }
+        });
+        const data = await res.json();
+
+        // ✅ Filter playlists that start with "SCM"
+        const scmPlaylists = data.items.filter(p =>
+          p.name && p.name.trim().toUpperCase().startsWith('SCM')
+        );
+
+        results = [...results, ...scmPlaylists];
+        url = data.next;
+      }
+
+      setPlaylists(results);
+      if (results.length > 0) {
+        selectRandomPlaylist(results);
+      }
+    } catch (err) {
+      console.error('Error fetching playlists:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (accessToken) fetchPlaylists();
+  }, [accessToken]);
+
+  const selectRandomPlaylist = (list = playlists) => {
+    if (!list.length) return;
+    const random = list[Math.floor(Math.random() * list.length)];
+    setCurrentPlaylist(random);
+    if (deviceId) playPlaylist(random.uri);
+  };
+
+  const handlePlaylistSelect = (playlist) => {
+    setCurrentPlaylist(playlist);
+    if (deviceId) playPlaylist(playlist.uri);
+  };
+
+  const playPlaylist = async (playlistUri) => {
+    await fetch(`https://api.spotify.com/v1/me/player/play?device_id=${deviceId}`, {
+      method: 'PUT',
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ context_uri: playlistUri })
+    });
+  };
+
   const togglePlay = async () => {
     if (player) await player.togglePlay();
   };
@@ -64,42 +122,51 @@ export default function SpotifySCMPlayer({ accessToken }) {
     if (player) await player.setVolume(newVolume);
   };
 
-  if (loading) return <div>Loading playlists...</div>;
-  if (playlists.length === 0) return <div>No SCM playlists found.</div>;
+  if (loading) return <div>Loading SCM playlists...</div>;
+  if (playlists.length === 0) return <div>No SCM playlists found in your Spotify account.</div>;
 
   return (
-    <div className="max-w-md mx-auto p-4 space-y-4">
+    <div className="max-w-md mx-auto p-4 space-y-4 text-gray-900">
       <h2 className="text-2xl font-bold mb-4">SCM Spotify Player</h2>
 
-      {/* Playlist Options */}
       <div className="bg-white shadow rounded-xl p-4">
-          <h3 className="text-xl font-semibold mb-2">Available SCM Playlists</h3>
-          <ul className="space-y-2">
-            {playlists.map((playlist) => (
-              <li key={playlist.id}>
-                <button onClick={() => handlePlaylistSelect(playlist)} variant={currentPlaylist?.id === playlist.id ? "default" : "outline"}>
-                  {playlist.name}
-                </button>
-              </li>
-            ))}
-          </ul>
+        <h3 className="text-xl font-semibold mb-2">Available SCM Playlists</h3>
+        <ul className="space-y-2">
+          {playlists.map((playlist) => (
+            <li key={playlist.id}>
+              <button
+                onClick={() => handlePlaylistSelect(playlist)}
+                className={`p-2 w-full text-left rounded ${
+                  currentPlaylist?.id === playlist.id ? 'bg-green-600 text-white' : 'bg-gray-100'
+                }`}
+              >
+                {playlist.name}
+              </button>
+            </li>
+          ))}
+        </ul>
       </div>
 
-      {/* Random Selector */}
       <div className="text-center">
-        <button onClick={selectRandomPlaylist} className="mb-4">Play a Random Playlist</button>
+        <button
+          onClick={selectRandomPlaylist}
+          className="mb-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+        >
+          🎲 Play a Random SCM Playlist
+        </button>
       </div>
 
-      {/* Now Playing and Controls */}
       {currentPlaylist && (
         <div className="text-center space-y-4">
-          <h3 className="text-lg font-semibold mb-2">Now Playing:</h3>
-          <p className="mb-4">{currentPlaylist.name}</p>
+          <h3 className="text-lg font-semibold">Now Playing:</h3>
+          <p className="mb-2">{currentPlaylist.name}</p>
 
           <div className="space-x-4">
-            <button onClick={skipPrevious}>⏮️ Previous<Button>
-            <button onClick={togglePlay}>{isPlaying ? '⏸️ Pause' : '▶️ Pl'y<}b/Button>
-            <button onClick={skipNext}>⏭️ Next<Button>
+            <button onClick={skipPrevious} className="px-3 py-1 bg-gray-300 rounded">⏮️</button>
+            <button onClick={togglePlay} className="px-4 py-2 bg-green-600 text-white rounded">
+              {isPlaying ? '⏸️ Pause' : '▶️ Play'}
+            </button>
+            <button onClick={skipNext} className="px-3 py-1 bg-gray-300 rounded">⏭️</button>
           </div>
 
           <div className="mt-4">
