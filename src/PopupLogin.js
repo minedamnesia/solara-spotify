@@ -1,3 +1,4 @@
+import React from 'react';
 import { generateCodeVerifier, generateCodeChallenge } from './pkceUtils';
 
 const clientId = process.env.REACT_APP_SPOTIFY_CLIENT_ID;
@@ -49,15 +50,25 @@ if (!window.location.search.includes('code=')) {
       if (data.access_token) {
         // ✅ Send token back to opener
         if (window.opener && typeof window.opener.postMessage === 'function') {
-          window.opener.postMessage({
-            type: 'SPOTIFY_TOKEN',
-            token: data.access_token
-          }, '*');
+          window.opener.postMessage(
+            {
+              type: 'SPOTIFY_TOKEN',
+              token: data.access_token
+            },
+            '*'
+          );
+          window.close();
         } else {
           console.warn('No opener window — cannot send token back');
-          // Optional fallback: show token or ask user to reload iframe
-          document.body.innerText = 'Authorization failed';
+          document.body.innerText = 'Authorization completed, but could not communicate with the main app.';
+        }
+      } else {
+        document.body.innerText = 'Authorization failed: No access token.';
       }
+    })
+    .catch((err) => {
+      console.error('Token exchange failed:', err);
+      document.body.innerText = 'Authorization failed due to network error.';
     });
 }
 
