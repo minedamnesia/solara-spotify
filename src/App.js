@@ -6,22 +6,24 @@ import PopupLogin from './PopupLogin';
 function App() {
   const [accessToken, setAccessToken] = useState(null);
 
+  // Load token from localStorage if already present
   useEffect(() => {
     const token = localStorage.getItem('spotify_access_token');
-    if (!token) {
-      const popup = window.open('/popup-login', 'Spotify Login', '...');
-      const listener = (e) => {
-        if (e.data.type === 'SPOTIFY_TOKEN') {
-          setAccessToken(e.data.token);
-          localStorage.setItem('spotify_access_token', e.data.token);
-          window.removeEventListener('message', listener);
-          popup?.close();
-        }
-      };
-      window.addEventListener('message', listener);
-    } else {
+    if (token) {
       setAccessToken(token);
     }
+  }, []);
+
+  // Listen for token sent via postMessage (from parent or popup)
+  useEffect(() => {
+    const listener = (event) => {
+      if (event.data?.type === 'SPOTIFY_TOKEN') {
+        localStorage.setItem('spotify_access_token', event.data.token);
+        setAccessToken(event.data.token);
+      }
+    };
+    window.addEventListener('message', listener);
+    return () => window.removeEventListener('message', listener);
   }, []);
 
   return (
@@ -35,3 +37,4 @@ function App() {
 }
 
 export default App;
+
