@@ -17,7 +17,10 @@ function App() {
   // Listen for token sent via postMessage (from parent or popup)
   useEffect(() => {
     const listener = (event) => {
-      if (event.data?.type === 'SPOTIFY_TOKEN') {
+      if (
+        event.origin === 'https://solararadio.netlify.app/' && // 👈 only accept from trusted site
+        event.data?.type === 'SPOTIFY_TOKEN'
+      ) {
         localStorage.setItem('spotify_access_token', event.data.token);
         setAccessToken(event.data.token);
       }

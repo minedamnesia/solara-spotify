@@ -55,7 +55,7 @@ if (!window.location.search.includes('code=')) {
               type: 'SPOTIFY_TOKEN',
               token: data.access_token
             },
-            '*'
+            'https://solararadio.netlify.app/'
           );
           window.close();
         } else {
