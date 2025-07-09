@@ -1,24 +1,23 @@
-import React, { useEffect, useState } from 'react';
+// --- App.js (for Solara Spotify Radio App in iframe) ---
+import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import SpotifySCMPlayer from './SpotifySCMPlayer';
 import PopupLogin from './PopupLogin';
 
-function App() {
+export default function App() {
   const [accessToken, setAccessToken] = useState(null);
 
-  // Load token from localStorage if already present
   useEffect(() => {
+    // First, check localStorage
     const token = localStorage.getItem('spotify_access_token');
     if (token) {
       setAccessToken(token);
     }
-  }, []);
 
-  // Listen for token sent via postMessage (from parent or popup)
-  useEffect(() => {
+    // Then, listen for postMessage from parent
     const listener = (event) => {
       if (
-        event.origin === 'https://solararadio.netlify.app/' && // 👈 only accept from trusted site
+        event.origin === 'https://solararadio.netlify.app' &&
         event.data?.type === 'SPOTIFY_TOKEN'
       ) {
         localStorage.setItem('spotify_access_token', event.data.token);
@@ -32,12 +31,21 @@ function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<SpotifySCMPlayer accessToken={accessToken} />} />
+        <Route
+          path="/"
+          element={
+            accessToken ? (
+              <SpotifySCMPlayer accessToken={accessToken} />
+            ) : (
+              <div className="text-center p-6 text-lg text-gray-700">
+                Waiting for Spotify authorization...
+              </div>
+            )
+          }
+        />
         <Route path="/popup-login" element={<PopupLogin />} />
       </Routes>
     </Router>
   );
 }
-
-export default App;
 
