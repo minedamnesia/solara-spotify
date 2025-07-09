@@ -16,10 +16,12 @@ export default function App() {
 
     // Then, listen for postMessage from parent
     const listener = (event) => {
+      console.log('[Iframe App] Received message from parent:', event);
       if (
         event.origin === 'https://solararadio.netlify.app' &&
         event.data?.type === 'SPOTIFY_TOKEN'
       ) {
+        console.log('[Iframe App] Setting Spotify access token:', event.data.token);
         localStorage.setItem('spotify_access_token', event.data.token);
         setAccessToken(event.data.token);
       }

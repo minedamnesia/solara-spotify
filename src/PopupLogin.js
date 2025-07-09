@@ -67,7 +67,8 @@ export default function PopupLogin() {
 
         if (tokenData.access_token) {
           if (window.opener && typeof window.opener.postMessage === 'function') {
-            console.log('Sending token to opener...');
+            console.log('[Popup] Received access token from Spotify:', data.access_token);
+
             window.opener.postMessage(
               {
                 type: 'SPOTIFY_TOKEN',
@@ -77,10 +78,11 @@ export default function PopupLogin() {
             );
             window.close();
           } else {
-            console.warn('No opener window found to post message');
+            console.warn('[Popup] No opener window — cannot send token back');
             document.body.innerText = 'Login succeeded, but the main app window is missing.';
           }
         } else {
+          console.error('[Popup] No access token in Spotify response:', data);
           throw new Error('Access token missing in response');
         }
       } catch (error) {
