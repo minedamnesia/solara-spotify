@@ -1,8 +1,10 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { generateCodeVerifier, generateCodeChallenge } from './pkceUtils';
 
 const clientId = process.env.REACT_APP_SPOTIFY_CLIENT_ID;
 const redirectUri = window.location.origin + '/popup-login';
+const allowedReturnOrigin = 'https://solararadio.netlify.app';
+
 const scope = [
   'playlist-read-private',
   'playlist-read-collaborative',
@@ -12,69 +14,86 @@ const scope = [
   'user-read-currently-playing'
 ].join(' ');
 
-// Step 1: If no "code", redirect to Spotify
-if (!window.location.search.includes('code=')) {
-  const verifier = generateCodeVerifier();
-  generateCodeChallenge(verifier).then((challenge) => {
-    localStorage.setItem('spotify_code_verifier', verifier);
-
-    const params = new URLSearchParams({
-      response_type: 'code',
-      client_id: clientId,
-      scope: scope,
-      redirect_uri: redirectUri,
-      code_challenge_method: 'S256',
-      code_challenge: challenge
-    });
-
-    window.location = `https://accounts.spotify.com/authorize?${params.toString()}`;
-  });
-} else {
-  // Step 2: Exchange code for token
-  const code = new URLSearchParams(window.location.search).get('code');
-  const verifier = localStorage.getItem('spotify_code_verifier');
-
-  fetch('https://accounts.spotify.com/api/token', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: new URLSearchParams({
-      client_id: clientId,
-      grant_type: 'authorization_code',
-      code,
-      redirect_uri: redirectUri,
-      code_verifier: verifier
-    })
-  })
-    .then((res) => res.json())
-    .then((data) => {
-      if (data.access_token) {
-        // ✅ Send token back to opener
-        if (window.opener && typeof window.opener.postMessage === 'function') {
-          window.opener.postMessage(
-            {
-              type: 'SPOTIFY_TOKEN',
-              token: data.access_token
-            },
-            'https://solararadio.netlify.app/'
-          );
-          window.close();
-        } else {
-          console.warn('No opener window — cannot send token back');
-          document.body.innerText = 'Authorization completed, but could not communicate with the main app.';
-        }
-      } else {
-        document.body.innerText = 'Authorization failed: No access token.';
-      }
-    })
-    .catch((err) => {
-      console.error('Token exchange failed:', err);
-      document.body.innerText = 'Authorization failed due to network error.';
-    });
-}
-
 export default function PopupLogin() {
+  useEffect(() => {
+    const runAuthFlow = async () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const code = urlParams.get('code');
+
+      if (!code) {
+        // Step 1: No code yet — start OAuth flow
+        const verifier = generateCodeVerifier();
+        const challenge = await generateCodeChallenge(verifier);
+        localStorage.setItem('spotify_code_verifier', verifier);
+
+        const authParams = new URLSearchParams({
+          response_type: 'code',
+          client_id: clientId,
+          scope: scope,
+          redirect_uri: redirectUri,
+          code_challenge_method: 'S256',
+          code_challenge: challenge
+        });
+
+        const authUrl = `https://accounts.spotify.com/authorize?${authParams.toString()}`;
+        console.log('Redirecting to Spotify login:', authUrl);
+        window.location.href = authUrl;
+        return;
+      }
+
+      // Step 2: Exchange code for access token
+      try {
+        const verifier = localStorage.getItem('spotify_code_verifier');
+        const tokenResponse = await fetch('https://accounts.spotify.com/api/token', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+          },
+          body: new URLSearchParams({
+            client_id: clientId,
+            grant_type: 'authorization_code',
+            code,
+            redirect_uri: redirectUri,
+            code_verifier: verifier
+          })
+        });
+
+        if (!tokenResponse.ok) {
+          const errText = await tokenResponse.text();
+          throw new Error(`Token request failed: ${tokenResponse.status} - ${errText}`);
+        }
+
+        const tokenData = await tokenResponse.json();
+
+        if (tokenData.access_token) {
+          if (window.opener && typeof window.opener.postMessage === 'function') {
+            console.log('Sending token to opener...');
+            window.opener.postMessage(
+              {
+                type: 'SPOTIFY_TOKEN',
+                token: tokenData.access_token
+              },
+              allowedReturnOrigin // only allow trusted origin
+            );
+            window.close();
+          } else {
+            console.warn('No opener window found to post message');
+            document.body.innerText = 'Login succeeded, but the main app window is missing.';
+          }
+        } else {
+          throw new Error('Access token missing in response');
+        }
+      } catch (error) {
+        console.error('OAuth error:', error);
+        document.body.innerText = `Spotify authorization failed: ${error.message}`;
+      }
+    };
+
+    runAuthFlow();
+  }, []);
+
   return (
-    <div className="text-center p-8">
+    <div className="text-center p-8 text-lg">
       Logging in with Spotify...
     </div>
   );

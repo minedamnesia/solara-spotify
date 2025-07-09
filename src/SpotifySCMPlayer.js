@@ -23,27 +23,35 @@ export default function SpotifySCMPlayer({ accessToken }) {
   }
 
   useEffect(() => {
-    if (!accessToken) return;
-
     loadSpotifySDK().then(() => {
-      const spotifyPlayer = new window.Spotify.Player({
+      const player = new window.Spotify.Player({
         name: 'Solara Spotify Player',
         getOAuthToken: cb => cb(accessToken),
         volume: 0.8
       });
 
-      spotifyPlayer.addListener('ready', ({ device_id }) => {
+      player.addListener('ready', ({ device_id }) => {
         setDeviceId(device_id);
       });
 
-      spotifyPlayer.addListener('player_state_changed', (state) => {
-        setIsPlaying(state && !state.paused);
+      player.addListener('player_state_changed', state => {
+        setIsPlaying(!state.paused);
       });
 
-      spotifyPlayer.connect();
-      setPlayer(spotifyPlayer);
+      player.connect();
+      setPlayer(player);
     });
   }, [accessToken]);
+
+  useEffect(() => {
+    if (accessToken) fetchPlaylists();
+  }, [accessToken]);
+
+  useEffect(() => {
+    if (deviceId && currentPlaylist) {
+      playPlaylist(currentPlaylist.uri);
+    }
+  }, [deviceId, currentPlaylist]);
 
   const fetchPlaylists = async () => {
     try {
@@ -55,11 +63,9 @@ export default function SpotifySCMPlayer({ accessToken }) {
           headers: { Authorization: `Bearer ${accessToken}` }
         });
         const data = await res.json();
-
         const scmPlaylists = data.items.filter(p =>
           p.name && p.name.trim().toUpperCase().startsWith('SCM')
         );
-
         results = [...results, ...scmPlaylists];
         url = data.next;
       }
@@ -75,64 +81,38 @@ export default function SpotifySCMPlayer({ accessToken }) {
     }
   };
 
-  useEffect(() => {
-    if (accessToken) fetchPlaylists();
-  }, [accessToken]);
-
-  useEffect(() => {
-    if (deviceId && currentPlaylist?.uri) {
-      playPlaylist(currentPlaylist.uri);
-    }
-  }, [deviceId, currentPlaylist]);
-
   const playPlaylist = async (playlistUri) => {
-    try {
-      await fetch(`https://api.spotify.com/v1/me/player/play?device_id=${deviceId}`, {
-        method: 'PUT',
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ context_uri: playlistUri })
-      });
-    } catch (err) {
-      console.error('Failed to play playlist:', err);
-    }
+    await fetch(`https://api.spotify.com/v1/me/player/play?device_id=${deviceId}`, {
+      method: 'PUT',
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ context_uri: playlistUri })
+    });
+  };
+
+  const handleSelectChange = (e) => {
+    const selected = playlists.find(p => p.id === e.target.value);
+    if (selected) setCurrentPlaylist(selected);
   };
 
   const togglePlay = async () => {
-    try {
-      if (player) await player.togglePlay();
-    } catch (err) {
-      console.error('Toggle play failed:', err);
-    }
+    if (player) await player.togglePlay();
   };
 
   const skipNext = async () => {
-    try {
-      if (player) await player.nextTrack();
-    } catch (err) {
-      console.error('Next track failed:', err);
-    }
+    if (player) await player.nextTrack();
   };
 
   const skipPrevious = async () => {
-    try {
-      if (player) await player.previousTrack();
-    } catch (err) {
-      console.error('Previous track failed:', err);
-    }
+    if (player) await player.previousTrack();
   };
 
   const changeVolume = async (e) => {
     const newVolume = parseFloat(e.target.value);
     setVolume(newVolume);
     if (player) await player.setVolume(newVolume);
-  };
-
-  const handleSelectChange = (e) => {
-    const selected = playlists.find(p => p.id === e.target.value);
-    if (selected) setCurrentPlaylist(selected);
   };
 
   if (loading) return <div className="text-center text-gray-800">Loading SCM playlists...</div>;
@@ -154,7 +134,7 @@ export default function SpotifySCMPlayer({ accessToken }) {
         >
           {playlists.map((playlist) => (
             <option key={playlist.id} value={playlist.id}>
-              {playlist.name.replace(/^SCM:\s*/i, '')}
+              {playlist.name.replace(/^SCM:\\s*/i, '')}
             </option>
           ))}
         </select>
@@ -173,7 +153,7 @@ export default function SpotifySCMPlayer({ accessToken }) {
       {currentPlaylist && (
         <div className="text-center space-y-4">
           <h3 className="text-lg font-semibold text-[#9CAF88]">Now Playing:</h3>
-          <p className="mb-2 text-[#333]">{currentPlaylist.name.replace(/^SCM:\s*/i, '')}</p>
+          <p className="mb-2 text-[#333]">{currentPlaylist.name.replace(/^SCM:\\s*/i, '')}</p>
 
           <div className="space-x-4">
             <button onClick={skipPrevious} className="px-3 py-1 bg-[#D9C7A1] text-black rounded">⏮️</button>
