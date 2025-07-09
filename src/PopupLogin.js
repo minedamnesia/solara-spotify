@@ -48,12 +48,15 @@ if (!window.location.search.includes('code=')) {
     .then((data) => {
       if (data.access_token) {
         // ✅ Send token back to opener
-        window.opener.postMessage({
-          type: 'SPOTIFY_TOKEN',
-          token: data.access_token
-        }, '*');
-      } else {
-        document.body.innerText = 'Authorization failed';
+        if (window.opener && typeof window.opener.postMessage === 'function') {
+          window.opener.postMessage({
+            type: 'SPOTIFY_TOKEN',
+            token: data.access_token
+          }, '*');
+        } else {
+          console.warn('No opener window — cannot send token back');
+          // Optional fallback: show token or ask user to reload iframe
+          document.body.innerText = 'Authorization failed';
       }
     });
 }
