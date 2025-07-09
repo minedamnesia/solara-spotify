@@ -18,4 +18,9 @@ export async function generateCodeChallenge(codeVerifier) {
 }
 
 function base64UrlEncode(buffer) {
+  return btoa(String.fromCharCode(...new Uint8Array(buffer)))
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=+$/, '');
+}
 
