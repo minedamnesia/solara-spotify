@@ -115,12 +115,12 @@ export default function SpotifySCMPlayer({ accessToken }) {
     if (player) await player.setVolume(newVolume);
   };
 
-  if (loading) return <div className="text-center text-gray-800">Loading SCM playlists...</div>;
-  if (playlists.length === 0) return <div className="text-center text-gray-800">No SCM playlists found.</div>;
+  if (loading) return <div className="text-center text-gray-800">Loading Space Cowgirl Radio...</div>;
+  if (playlists.length === 0) return <div className="text-center text-gray-800">No Space Cowgirl playlists found.</div>;
 
   return (
     <div className="max-w-md mx-auto p-4 space-y-4 text-gray-900 bg-[#9CAF88] rounded-xl shadow-lg">
-      <h2 className="text-2xl font-bold mb-4 text-white">SCM Spotify Player</h2>
+      <h2 className="text-2xl font-bold mb-4 text-white">Space Cowgirl Mixes</h2>
 
       <div className="bg-[#D9C7A1] rounded-xl p-4 space-y-4">
         <label htmlFor="playlist" className="block font-semibold mb-1 text-[#4A4A4A]">
