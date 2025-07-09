@@ -1,5 +1,7 @@
-import PopupLogin from './PopupLogin';
+import React, { useEffect, useState } from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import SpotifySCMPlayer from './SpotifySCMPlayer';
+import PopupLogin from './PopupLogin';
 
 function App() {
   const [accessToken, setAccessToken] = useState(null);
