@@ -1,28 +1,32 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import SpotifyLogin from './SpotifyLogin';
-import SpotifyCallback from './SpotifyCallback';
+import PopupLogin from './PopupLogin';
 import SpotifySCMPlayer from './SpotifySCMPlayer';
 
-export default function App() {
-  const accessToken = localStorage.getItem('spotify_access_token');
+function App() {
+  const [accessToken, setAccessToken] = useState(null);
+
+  useEffect(() => {
+    const token = localStorage.getItem('spotify_access_token');
+    if (!token) {
+      const popup = window.open('/popup-login', 'Spotify Login', '...');
+      const listener = (e) => {
+        if (e.data.type === 'SPOTIFY_TOKEN') {
+          setAccessToken(e.data.token);
+          localStorage.setItem('spotify_access_token', e.data.token);
+          window.removeEventListener('message', listener);
+          popup?.close();
+        }
+      };
+      window.addEventListener('message', listener);
+    } else {
+      setAccessToken(token);
+    }
+  }, []);
 
   return (
     <Router>
       <Routes>
-        <Route
-          path="/"
-          element={
-            accessToken ? (
-              <SpotifySCMPlayer accessToken={accessToken} />
-            ) : (
-              <SpotifyLogin />
-            )
-          }
-        />
-        <Route path="/" element={<SpotifySCMPlayer />} />   
+        <Route path="/" element={<SpotifySCMPlayer accessToken={accessToken} />} />
         <Route path="/popup-login" element={<PopupLogin />} />
-        <Route path="/callback" element={<SpotifyCallback />} />
       </Routes>
     </Router>
   );
