@@ -23,25 +23,34 @@ export default function SpotifySCMPlayer({ accessToken }) {
   }
 
   useEffect(() => {
-    loadSpotifySDK().then(() => {
-      const spotifyPlayer = new window.Spotify.Player({
-        name: 'Solara Spotify Player',
-        getOAuthToken: cb => cb(accessToken),
-        volume: 0.8
-      });
+    const token = localStorage.getItem('spotify_access_token');
+    if (!token) {
+      const width = 500;
+      const height = 600;
+      const left = window.screenX + (window.innerWidth - width) / 2;
+      const top = window.screenY + (window.innerHeight - height) / 2;
 
-      spotifyPlayer.addListener('ready', ({ device_id }) => {
-        setDeviceId(device_id);
-      });
+      const authPopup = window.open(
+        '/popup-login',
+        'Spotify Login',
+        `width=${width},height=${height},left=${left},top=${top}`
+      );
 
-      spotifyPlayer.addListener('player_state_changed', (state) => {
-        setIsPlaying(state && !state.paused);
-      });
+      const listener = (event) => {
+        if (event.data.type === 'SPOTIFY_TOKEN') {
+          localStorage.setItem('spotify_access_token', event.data.token);
+          setAccessToken(event.data.token);
+          window.removeEventListener('message', listener);
+          authPopup?.close();
+        }
+      };
 
-      spotifyPlayer.connect();
-      setPlayer(spotifyPlayer);
-    });
-  }, [accessToken]);
+      window.addEventListener('message', listener);
+    } else {
+      setAccessToken(token);
+    }
+  }, []);
+
 
   const fetchPlaylists = async () => {
     try {

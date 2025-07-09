@@ -20,6 +20,8 @@ export default function App() {
             )
           }
         />
+        <Route path="/" element={<SpotifySCMPlayer />} />   
+        <Route path="/popup-login" element={<PopupLogin />} />
         <Route path="/callback" element={<SpotifyCallback />} />
       </Routes>
     </Router>
