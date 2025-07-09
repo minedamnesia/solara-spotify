@@ -1,0 +1,68 @@
+.player-wrapper {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 1.5rem;
+  background-color: #9CAF88; /* green background */
+  color: #333;
+  border-radius: 1rem;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  font-family: sans-serif;
+}
+
+.player-wrapper h2 {
+  font-size: 1.75rem;
+  margin-bottom: 1rem;
+  color: #B7410E; /* rust */
+}
+
+.select-section {
+  background-color: #D9C7A1; /* tan */
+  padding: 1rem;
+  border-radius: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.select-section label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: bold;
+}
+
+.playlist-select {
+  width: 100%;
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+  border: 1px solid #9CAF88;
+}
+
+.button {
+  display: inline-block;
+  padding: 0.5rem 1rem;
+  margin-top: 1rem;
+  background-color: #D9C7A1; /* tan */
+  color: #000;
+  border: none;
+  border-radius: 0.75rem;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.button:hover {
+  background-color: #C8B68D;
+}
+
+.play-controls {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.volume-control {
+  margin-top: 1rem;
+  font-size: 0.9rem;
+}
+
+.volume-control input[type="range"] {
+  w
+

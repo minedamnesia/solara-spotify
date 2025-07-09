@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import './SpotifySCMPlayer.css';
 
 export default function SpotifySCMPlayer({ accessToken }) {
   const [playlists, setPlaylists] = useState([]);
@@ -119,18 +120,16 @@ export default function SpotifySCMPlayer({ accessToken }) {
   if (playlists.length === 0) return <div className="text-center text-gray-800">No Space Cowgirl playlists found.</div>;
 
   return (
-    <div className="max-w-md mx-auto p-4 space-y-4 text-gray-900 bg-[#9CAF88] rounded-xl shadow-lg">
-      <h2 className="text-2xl font-bold mb-4 text-white">Space Cowgirl Mixes</h2>
+    <div className="player-wrapper">
+      <h2>Space Cowgirl Mixes</h2>
 
-      <div className="bg-[#D9C7A1] rounded-xl p-4 space-y-4">
-        <label htmlFor="playlist" className="block font-semibold mb-1 text-[#4A4A4A]">
-          Select a Playlist
-        </label>
+      <div className="select-section">
+        <label htmlFor="playlist">Select a Playlist</label>
         <select
           id="playlist"
           onChange={handleSelectChange}
           value={currentPlaylist?.id}
-          className="w-full p-2 border border-[#4A4A4A] rounded bg-white text-gray-900"
+          className="playlist-select"
         >
           {playlists.map((playlist) => (
             <option key={playlist.id} value={playlist.id}>
@@ -144,29 +143,29 @@ export default function SpotifySCMPlayer({ accessToken }) {
             const random = playlists[Math.floor(Math.random() * playlists.length)];
             setCurrentPlaylist(random);
           }}
-          className="w-full p-2 bg-[#D9C7A1] border border-[#B7410E] text-[#B7410E] rounded hover:bg-[#e8d8b8]"
+          className="button"
         >
           🎲 Play a Random Playlist
         </button>
       </div>
 
       {currentPlaylist && (
-        <div className="text-center space-y-4">
-          <h3 className="text-lg font-semibold text-white">Now Playing:</h3>
-          <p className="mb-2 text-white">
+        <div className="now-playing">
+          <h3>Now Playing:</h3>
+          <p>
             {currentPlaylist.name.replace(/^SCM:\s*/i, '')}
           </p>
 
-          <div className="space-x-4">
-            <button onClick={skipPrevious} className="px-3 py-1 bg-[#D9C7A1] text-black rounded">⏮️</button>
-            <button onClick={togglePlay} className="px-4 py-2 bg-[#D9C7A1] text-black rounded hover:bg-[#e8d8b8]">
+          <div className="play-controls">
+            <button onClick={skipPrevious} className="button">⏮️</button>
+            <button onClick={togglePlay} className="button">
               {isPlaying ? '⏸️ Pause' : '▶️ Play'}
             </button>
-            <button onClick={skipNext} className="px-3 py-1 bg-[#D9C7A1] text-black rounded">⏭️</button>
+            <button onClick={skipNext} className="button">⏭️</button>
           </div>
 
-          <div className="mt-4 text-sm">
-            <label htmlFor="volume" className="mr-2 text-white">Volume:</label>
+          <div className="volume-control">
+            <label htmlFor="volume">Volume:</label>
             <input
               id="volume"
               type="range"
