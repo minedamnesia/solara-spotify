@@ -23,34 +23,27 @@ export default function SpotifySCMPlayer({ accessToken }) {
   }
 
   useEffect(() => {
-    const token = localStorage.getItem('spotify_access_token');
-    if (!token) {
-      const width = 500;
-      const height = 600;
-      const left = window.screenX + (window.innerWidth - width) / 2;
-      const top = window.screenY + (window.innerHeight - height) / 2;
+    if (!accessToken) return;
 
-      const authPopup = window.open(
-        '/popup-login',
-        'Spotify Login',
-        `width=${width},height=${height},left=${left},top=${top}`
-      );
+    loadSpotifySDK().then(() => {
+      const spotifyPlayer = new window.Spotify.Player({
+        name: 'Solara Spotify Player',
+        getOAuthToken: cb => cb(accessToken),
+        volume: 0.8
+      });
 
-      const listener = (event) => {
-        if (event.data.type === 'SPOTIFY_TOKEN') {
-          localStorage.setItem('spotify_access_token', event.data.token);
-          setAccessToken(event.data.token);
-          window.removeEventListener('message', listener);
-          authPopup?.close();
-        }
-      };
+      spotifyPlayer.addListener('ready', ({ device_id }) => {
+        setDeviceId(device_id);
+      });
 
-      window.addEventListener('message', listener);
-    } else {
-      setAccessToken(token);
-    }
-  }, []);
+      spotifyPlayer.addListener('player_state_changed', (state) => {
+        setIsPlaying(state && !state.paused);
+      });
 
+      spotifyPlayer.connect();
+      setPlayer(spotifyPlayer);
+    });
+  }, [accessToken]);
 
   const fetchPlaylists = async () => {
     try {
@@ -87,32 +80,48 @@ export default function SpotifySCMPlayer({ accessToken }) {
   }, [accessToken]);
 
   useEffect(() => {
-    if (deviceId && currentPlaylist) {
+    if (deviceId && currentPlaylist?.uri) {
       playPlaylist(currentPlaylist.uri);
     }
   }, [deviceId, currentPlaylist]);
 
   const playPlaylist = async (playlistUri) => {
-    await fetch(`https://api.spotify.com/v1/me/player/play?device_id=${deviceId}`, {
-      method: 'PUT',
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ context_uri: playlistUri })
-    });
+    try {
+      await fetch(`https://api.spotify.com/v1/me/player/play?device_id=${deviceId}`, {
+        method: 'PUT',
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ context_uri: playlistUri })
+      });
+    } catch (err) {
+      console.error('Failed to play playlist:', err);
+    }
   };
 
   const togglePlay = async () => {
-    if (player) await player.togglePlay();
+    try {
+      if (player) await player.togglePlay();
+    } catch (err) {
+      console.error('Toggle play failed:', err);
+    }
   };
 
   const skipNext = async () => {
-    if (player) await player.nextTrack();
+    try {
+      if (player) await player.nextTrack();
+    } catch (err) {
+      console.error('Next track failed:', err);
+    }
   };
 
   const skipPrevious = async () => {
-    if (player) await player.previousTrack();
+    try {
+      if (player) await player.previousTrack();
+    } catch (err) {
+      console.error('Previous track failed:', err);
+    }
   };
 
   const changeVolume = async (e) => {
