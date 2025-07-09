@@ -64,5 +64,7 @@
 }
 
 .volume-control input[type="range"] {
-  w
+  width: 100%;
+  accent-color: #B7410E; /* rust */
+}
 
