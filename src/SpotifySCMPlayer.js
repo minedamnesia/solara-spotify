@@ -119,22 +119,22 @@ export default function SpotifySCMPlayer({ accessToken }) {
   if (playlists.length === 0) return <div className="text-center text-gray-800">No SCM playlists found.</div>;
 
   return (
-    <div className="max-w-md mx-auto p-4 space-y-4 text-gray-900">
-      <h2 className="text-2xl font-bold mb-4 text-[#B7410E]">SCM Spotify Player</h2>
+    <div className="max-w-md mx-auto p-4 space-y-4 text-gray-900 bg-[#9CAF88] rounded-xl shadow-lg">
+      <h2 className="text-2xl font-bold mb-4 text-white">SCM Spotify Player</h2>
 
-      <div className="bg-[#D9C7A1] shadow rounded-xl p-4 space-y-4">
-        <label htmlFor="playlist" className="block font-semibold mb-1 text-[#9CAF88]">
+      <div className="bg-[#D9C7A1] rounded-xl p-4 space-y-4">
+        <label htmlFor="playlist" className="block font-semibold mb-1 text-[#4A4A4A]">
           Select a Playlist
         </label>
         <select
           id="playlist"
           onChange={handleSelectChange}
           value={currentPlaylist?.id}
-          className="w-full p-2 border border-[#9CAF88] rounded bg-white text-gray-900"
+          className="w-full p-2 border border-[#4A4A4A] rounded bg-white text-gray-900"
         >
           {playlists.map((playlist) => (
             <option key={playlist.id} value={playlist.id}>
-              {playlist.name.replace(/^SCM:\\s*/i, '')}
+              {playlist.name.replace(/^SCM:\s*/i, '')}
             </option>
           ))}
         </select>
@@ -144,7 +144,7 @@ export default function SpotifySCMPlayer({ accessToken }) {
             const random = playlists[Math.floor(Math.random() * playlists.length)];
             setCurrentPlaylist(random);
           }}
-          className="w-full p-2 bg-[#B7410E] text-white rounded hover:bg-[#9C360C]"
+          className="w-full p-2 bg-[#D9C7A1] border border-[#B7410E] text-[#B7410E] rounded hover:bg-[#e8d8b8]"
         >
           🎲 Play a Random Playlist
         </button>
@@ -152,19 +152,21 @@ export default function SpotifySCMPlayer({ accessToken }) {
 
       {currentPlaylist && (
         <div className="text-center space-y-4">
-          <h3 className="text-lg font-semibold text-[#9CAF88]">Now Playing:</h3>
-          <p className="mb-2 text-[#333]">{currentPlaylist.name.replace(/^SCM:\\s*/i, '')}</p>
+          <h3 className="text-lg font-semibold text-white">Now Playing:</h3>
+          <p className="mb-2 text-white">
+            {currentPlaylist.name.replace(/^SCM:\s*/i, '')}
+          </p>
 
           <div className="space-x-4">
             <button onClick={skipPrevious} className="px-3 py-1 bg-[#D9C7A1] text-black rounded">⏮️</button>
-            <button onClick={togglePlay} className="px-4 py-2 bg-[#9CAF88] text-white rounded hover:bg-[#88A074]">
+            <button onClick={togglePlay} className="px-4 py-2 bg-[#D9C7A1] text-black rounded hover:bg-[#e8d8b8]">
               {isPlaying ? '⏸️ Pause' : '▶️ Play'}
             </button>
             <button onClick={skipNext} className="px-3 py-1 bg-[#D9C7A1] text-black rounded">⏭️</button>
           </div>
 
           <div className="mt-4 text-sm">
-            <label htmlFor="volume" className="mr-2 text-[#9CAF88]">Volume:</label>
+            <label htmlFor="volume" className="mr-2 text-white">Volume:</label>
             <input
               id="volume"
               type="range"
